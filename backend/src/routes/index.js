@@ -9,8 +9,9 @@ const router = Router();
 router.get("/health", (req, res) => res.json({ status: "ok" }));
 
 router.use("/auth", require("./authRoutes"));
+router.use("/categorias", require("./categoriaRoutes"));
+router.use("/productos", require("./productoRoutes"));
 
-// TODO: montar routers de los demás módulos:
-// router.use("/productos", require("./productosRoutes"));
+// TODO: montar routers de los demás módulos (clientes, ventas, reportes).
 
 module.exports = router;

@@ -1,0 +1,23 @@
+# Dependencias
+node_modules/
+
+# Variables de entorno (nunca commitear)
+.env
+.env.local
+.env*.local
+
+# Builds
+backend/dist/
+frontend/.next/
+frontend/out/
+
+# Prisma
+*.db
+*.db-journal
+
+# Logs
+*.log
+npm-debug.log*
+
+# Sistema
+.DS_Store
