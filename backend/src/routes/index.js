@@ -13,7 +13,6 @@ router.use("/categorias", require("./categoriaRoutes"));
 router.use("/productos", require("./productoRoutes"));
 router.use("/clientes", require("./clienteRoutes"));
 router.use("/ventas", require("./ventaRoutes"));
-
-// TODO: montar routers de los demás módulos (reportes).
+router.use("/reportes", require("./reporteRoutes"));
 
 module.exports = router;
