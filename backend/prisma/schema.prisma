@@ -1,0 +1,117 @@
+// Esquema Prisma — réplica del DBML canónico de CLAUDE.md (sección 7).
+// PostgreSQL, 8 tablas. Prisma fijado en la versión 6.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Role {
+  id      Int       @id @default(autoincrement())
+  nombre  String    @unique @db.VarChar(30) // ADMIN, VENDEDOR
+  usuarios Usuario[]
+
+  @@map("roles")
+}
+
+model Usuario {
+  id              Int           @id @default(autoincrement())
+  nombre          String        @db.VarChar(120)
+  email           String        @unique @db.VarChar(160)
+  password        String?       @db.VarChar(255) // hash bcrypt; null si OAuth puro
+  rolId           Int           @map("rol_id")
+  proveedor       String        @default("credentials") @db.VarChar(20) // credentials | google | github
+  failedAttempts  Int           @default(0) @map("failed_attempts")
+  lockedUntil     DateTime?     @map("locked_until")
+  creadoEn        DateTime      @default(now()) @map("creado_en")
+
+  rol             Role          @relation(fields: [rolId], references: [id])
+  cuentasOauth    CuentaOauth[]
+  ventas          Venta[]
+
+  @@map("usuarios")
+}
+
+model CuentaOauth {
+  id                Int     @id @default(autoincrement())
+  usuarioId         Int     @map("usuario_id")
+  proveedor         String  @db.VarChar(20) // google | github
+  proveedorCuentaId String  @map("proveedor_cuenta_id") @db.VarChar(191)
+
+  usuario           Usuario @relation(fields: [usuarioId], references: [id])
+
+  @@unique([proveedor, proveedorCuentaId])
+  @@map("cuentas_oauth")
+}
+
+model Categoria {
+  id        Int        @id @default(autoincrement())
+  nombre    String     @unique @db.VarChar(80)
+  productos Producto[]
+
+  @@map("categorias")
+}
+
+model Producto {
+  id           Int             @id @default(autoincrement())
+  nombre       String          @db.VarChar(150)
+  descripcion  String?         @db.Text
+  precio       Decimal         @db.Decimal(10, 2)
+  stock        Int             @default(0)
+  categoriaId  Int?            @map("categoria_id")
+  activo       Boolean         @default(true)
+  creadoEn     DateTime        @default(now()) @map("creado_en")
+
+  categoria    Categoria?      @relation(fields: [categoriaId], references: [id])
+  detalles     DetalleVenta[]
+
+  @@map("productos")
+}
+
+model Cliente {
+  id        Int      @id @default(autoincrement())
+  nombre    String   @db.VarChar(150)
+  tipoDoc   String   @default("DNI") @map("tipo_doc") @db.VarChar(10) // DNI | RUC | CE
+  numDoc    String   @unique @map("num_doc") @db.VarChar(20)
+  email     String?  @db.VarChar(160)
+  telefono  String?  @db.VarChar(20)
+  creadoEn  DateTime @default(now()) @map("creado_en")
+
+  ventas    Venta[]
+
+  @@map("clientes")
+}
+
+model Venta {
+  id         Int            @id @default(autoincrement())
+  clienteId  Int            @map("cliente_id")
+  usuarioId  Int            @map("usuario_id") // vendedor que registró
+  fecha      DateTime       @default(now())
+  total      Decimal        @default(0) @db.Decimal(10, 2)
+  estado     String         @default("COMPLETADA") @db.VarChar(15) // COMPLETADA | ANULADA
+
+  cliente    Cliente        @relation(fields: [clienteId], references: [id])
+  usuario    Usuario        @relation(fields: [usuarioId], references: [id])
+  detalles   DetalleVenta[]
+
+  @@map("ventas")
+}
+
+model DetalleVenta {
+  id             Int      @id @default(autoincrement())
+  ventaId        Int      @map("venta_id")
+  productoId     Int      @map("producto_id")
+  cantidad       Int
+  precioUnitario Decimal  @map("precio_unitario") @db.Decimal(10, 2)
+  subtotal       Decimal  @db.Decimal(10, 2)
+
+  venta          Venta    @relation(fields: [ventaId], references: [id])
+  producto       Producto @relation(fields: [productoId], references: [id])
+
+  @@map("detalle_venta")
+}
