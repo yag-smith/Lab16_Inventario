@@ -11,7 +11,8 @@ router.get("/health", (req, res) => res.json({ status: "ok" }));
 router.use("/auth", require("./authRoutes"));
 router.use("/categorias", require("./categoriaRoutes"));
 router.use("/productos", require("./productoRoutes"));
+router.use("/clientes", require("./clienteRoutes"));
 
-// TODO: montar routers de los demás módulos (clientes, ventas, reportes).
+// TODO: montar routers de los demás módulos (ventas, reportes).
 
 module.exports = router;
