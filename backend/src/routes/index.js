@@ -9,6 +9,7 @@ const router = Router();
 router.get("/health", (req, res) => res.json({ status: "ok" }));
 
 router.use("/auth", require("./authRoutes"));
+router.use("/usuarios", require("./usuarioRoutes"));
 router.use("/categorias", require("./categoriaRoutes"));
 router.use("/productos", require("./productoRoutes"));
 router.use("/clientes", require("./clienteRoutes"));

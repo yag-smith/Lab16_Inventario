@@ -31,4 +31,32 @@ function updateLoginState(id, { failedAttempts, lockedUntil }) {
   });
 }
 
-module.exports = { findByEmail, findById, create, updateLoginState };
+function findAll() {
+  return prisma.usuario.findMany({
+    include: { rol: true },
+    orderBy: { id: "asc" },
+  });
+}
+
+function updateRol(id, rolId) {
+  return prisma.usuario.update({
+    where: { id },
+    data: { rolId },
+    include: { rol: true },
+  });
+}
+
+// Cuenta cuántos usuarios tienen el rol ADMIN (para no degradar al último).
+function countAdmins() {
+  return prisma.usuario.count({ where: { rol: { nombre: "ADMIN" } } });
+}
+
+module.exports = {
+  findByEmail,
+  findById,
+  create,
+  updateLoginState,
+  findAll,
+  updateRol,
+  countAdmins,
+};
