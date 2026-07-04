@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableHeader,
@@ -23,6 +24,13 @@ import {
   TableRow,
   TableCell,
 } from "@/components/ui/table";
+import {
+  MobileCard,
+  MobileCardHeader,
+  MobileFields,
+  MobileField,
+  MobileCardActions,
+} from "@/components/dashboard/mobile-card";
 import {
   Dialog,
   DialogContent,
@@ -156,7 +164,7 @@ export function ClientesClient({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Clientes</h1>
           <p className="text-muted-foreground">
@@ -164,14 +172,14 @@ export function ClientesClient({
           </p>
         </div>
         {/* Crear lo pueden hacer ADMIN y VENDEDOR. */}
-        <Button onClick={abrirCrear}>
+        <Button onClick={abrirCrear} className="w-full sm:w-auto">
           <PlusIcon className="size-4" />
           Nuevo cliente
         </Button>
       </div>
 
       {/* Búsqueda por nombre o número de documento */}
-      <div className="flex items-center gap-2">
+      <div className="flex w-full items-center gap-2 sm:w-auto">
         <Input
           placeholder="Buscar por nombre o documento…"
           value={busqueda}
@@ -179,11 +187,11 @@ export function ClientesClient({
           onKeyDown={(e) => {
             if (e.key === "Enter") buscar();
           }}
-          className="w-72"
+          className="flex-1 sm:w-72 sm:flex-none"
         />
-        <Button variant="outline" onClick={buscar}>
+        <Button variant="outline" onClick={buscar} className="shrink-0">
           <SearchIcon className="size-4" />
-          Buscar
+          <span className="hidden sm:inline">Buscar</span>
         </Button>
       </div>
 
@@ -193,10 +201,11 @@ export function ClientesClient({
         </p>
       ) : (
         <>
-          <div className="rounded-lg border bg-background">
+          {/* Escritorio (md+): tabla tradicional */}
+          <div className="hidden overflow-hidden rounded-lg border bg-background md:block">
             <Table>
               <TableHeader>
-                <TableRow>
+                <TableRow className="bg-muted/50 hover:bg-muted/50">
                   <TableHead>Nombre</TableHead>
                   <TableHead>Tipo doc.</TableHead>
                   <TableHead>N.º documento</TableHead>
@@ -258,8 +267,59 @@ export function ClientesClient({
             </Table>
           </div>
 
+          {/* Móvil (< md): tarjetas apiladas */}
+          <div className="space-y-3 md:hidden">
+            {clientes.length === 0 ? (
+              <p className="rounded-lg border bg-background p-6 text-center text-sm text-muted-foreground">
+                No se encontraron clientes.
+              </p>
+            ) : (
+              clientes.map((c) => (
+                <MobileCard key={c.id}>
+                  <MobileCardHeader>
+                    <p className="min-w-0 break-words font-medium">{c.nombre}</p>
+                    <Badge variant="outline" className="shrink-0">
+                      {c.tipoDoc}
+                    </Badge>
+                  </MobileCardHeader>
+                  <MobileFields>
+                    <MobileField label="N.º documento">
+                      <span className="tabular-nums">{c.numDoc}</span>
+                    </MobileField>
+                    <MobileField label="Email">{c.email || "—"}</MobileField>
+                    <MobileField label="Teléfono">
+                      <span className="tabular-nums">{c.telefono || "—"}</span>
+                    </MobileField>
+                  </MobileFields>
+                  <MobileCardActions>
+                    {/* Editar: ADMIN y VENDEDOR */}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => abrirEditar(c)}
+                    >
+                      <PencilIcon className="size-4" />
+                      Editar
+                    </Button>
+                    {/* Eliminar: solo ADMIN */}
+                    {isAdmin ? (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setAEliminar(c)}
+                      >
+                        <Trash2Icon className="size-4 text-destructive" />
+                        Eliminar
+                      </Button>
+                    ) : null}
+                  </MobileCardActions>
+                </MobileCard>
+              ))
+            )}
+          </div>
+
           {/* Paginación */}
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-sm text-muted-foreground">
               {total} resultado{total === 1 ? "" : "s"} · Página {page} de{" "}
               {totalPages}
@@ -268,6 +328,7 @@ export function ClientesClient({
               <Button
                 variant="outline"
                 size="sm"
+                className="flex-1 sm:flex-none"
                 onClick={() => navegar({ page: page - 1 })}
                 disabled={page <= 1}
               >
@@ -277,6 +338,7 @@ export function ClientesClient({
               <Button
                 variant="outline"
                 size="sm"
+                className="flex-1 sm:flex-none"
                 onClick={() => navegar({ page: page + 1 })}
                 disabled={page >= totalPages}
               >

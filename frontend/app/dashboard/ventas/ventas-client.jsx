@@ -22,6 +22,13 @@ import {
   TableCell,
 } from "@/components/ui/table";
 import {
+  MobileCard,
+  MobileCardHeader,
+  MobileFields,
+  MobileField,
+  MobileCardActions,
+} from "@/components/dashboard/mobile-card";
+import {
   Dialog,
   DialogContent,
   DialogHeader,
@@ -88,7 +95,7 @@ export function VentasClient({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Ventas</h1>
           <p className="text-muted-foreground">
@@ -96,7 +103,10 @@ export function VentasClient({
           </p>
         </div>
         {/* Registrar venta: ADMIN y VENDEDOR. */}
-        <Button onClick={() => router.push(`${RUTA}/nueva`)}>
+        <Button
+          onClick={() => router.push(`${RUTA}/nueva`)}
+          className="w-full sm:w-auto"
+        >
           <PlusIcon className="size-4" />
           Nueva venta
         </Button>
@@ -110,7 +120,7 @@ export function VentasClient({
             navegar({ estado: val === "all" ? "" : val, page: 1 })
           }
         >
-          <SelectTrigger className="w-56">
+          <SelectTrigger className="w-full sm:w-56">
             <SelectValue placeholder="Todos los estados" />
           </SelectTrigger>
           <SelectContent>
@@ -127,10 +137,11 @@ export function VentasClient({
         </p>
       ) : (
         <>
-          <div className="rounded-lg border bg-background">
+          {/* Escritorio (md+): tabla tradicional */}
+          <div className="hidden overflow-hidden rounded-lg border bg-background md:block">
             <Table>
               <TableHeader>
-                <TableRow>
+                <TableRow className="bg-muted/50 hover:bg-muted/50">
                   <TableHead className="w-16">#</TableHead>
                   <TableHead>Fecha</TableHead>
                   <TableHead>Cliente</TableHead>
@@ -195,8 +206,60 @@ export function VentasClient({
             </Table>
           </div>
 
+          {/* Móvil (< md): tarjetas apiladas */}
+          <div className="space-y-3 md:hidden">
+            {ventas.length === 0 ? (
+              <p className="rounded-lg border bg-background p-6 text-center text-sm text-muted-foreground">
+                No hay ventas registradas.
+              </p>
+            ) : (
+              ventas.map((v) => (
+                <MobileCard key={v.id}>
+                  <MobileCardHeader className="items-center">
+                    <p className="font-medium tabular-nums">Venta #{v.id}</p>
+                    <EstadoBadge estado={v.estado} />
+                  </MobileCardHeader>
+                  <MobileFields>
+                    <MobileField label="Fecha">
+                      {formatFecha(v.fecha)}
+                    </MobileField>
+                    <MobileField label="Cliente">
+                      {v.cliente?.nombre ?? "—"}
+                    </MobileField>
+                    <MobileField label="Total">
+                      <span className="font-medium tabular-nums">
+                        {formatPrecio(v.total)}
+                      </span>
+                    </MobileField>
+                  </MobileFields>
+                  <MobileCardActions>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => router.push(`${RUTA}/${v.id}`)}
+                    >
+                      <EyeIcon className="size-4" />
+                      Ver
+                    </Button>
+                    {/* Anular: solo ADMIN y solo si está COMPLETADA. */}
+                    {isAdmin && v.estado === "COMPLETADA" ? (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setAAnular(v)}
+                      >
+                        <BanIcon className="size-4 text-destructive" />
+                        Anular
+                      </Button>
+                    ) : null}
+                  </MobileCardActions>
+                </MobileCard>
+              ))
+            )}
+          </div>
+
           {/* Paginación */}
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-sm text-muted-foreground">
               {total} venta{total === 1 ? "" : "s"} · Página {page} de{" "}
               {totalPages}
@@ -205,6 +268,7 @@ export function VentasClient({
               <Button
                 variant="outline"
                 size="sm"
+                className="flex-1 sm:flex-none"
                 onClick={() => navegar({ page: page - 1 })}
                 disabled={page <= 1}
               >
@@ -214,6 +278,7 @@ export function VentasClient({
               <Button
                 variant="outline"
                 size="sm"
+                className="flex-1 sm:flex-none"
                 onClick={() => navegar({ page: page + 1 })}
                 disabled={page >= totalPages}
               >

@@ -25,6 +25,13 @@ import {
   TableCell,
 } from "@/components/ui/table";
 import {
+  MobileCard,
+  MobileCardHeader,
+  MobileFields,
+  MobileField,
+  MobileCardActions,
+} from "@/components/dashboard/mobile-card";
+import {
   Dialog,
   DialogContent,
   DialogHeader,
@@ -175,7 +182,7 @@ export function ProductosClient({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Productos</h1>
           <p className="text-muted-foreground">
@@ -183,7 +190,7 @@ export function ProductosClient({
           </p>
         </div>
         {isAdmin ? (
-          <Button onClick={abrirCrear}>
+          <Button onClick={abrirCrear} className="w-full sm:w-auto">
             <PlusIcon className="size-4" />
             Nuevo producto
           </Button>
@@ -191,8 +198,8 @@ export function ProductosClient({
       </div>
 
       {/* Filtros */}
-      <div className="flex flex-wrap items-center gap-2">
-        <div className="flex items-center gap-2">
+      <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+        <div className="flex w-full items-center gap-2 sm:w-auto">
           <Input
             placeholder="Buscar por nombre…"
             value={busqueda}
@@ -200,11 +207,11 @@ export function ProductosClient({
             onKeyDown={(e) => {
               if (e.key === "Enter") buscar();
             }}
-            className="w-64"
+            className="flex-1 sm:w-64 sm:flex-none"
           />
-          <Button variant="outline" onClick={buscar}>
+          <Button variant="outline" onClick={buscar} className="shrink-0">
             <SearchIcon className="size-4" />
-            Buscar
+            <span className="hidden sm:inline">Buscar</span>
           </Button>
         </div>
 
@@ -214,7 +221,7 @@ export function ProductosClient({
             navegar({ categoria: val === "all" ? "" : val, page: 1 })
           }
         >
-          <SelectTrigger className="w-56">
+          <SelectTrigger className="w-full sm:w-56">
             <SelectValue placeholder="Todas las categorías" />
           </SelectTrigger>
           <SelectContent>
@@ -234,10 +241,11 @@ export function ProductosClient({
         </p>
       ) : (
         <>
-          <div className="rounded-lg border bg-background">
+          {/* Escritorio (md+): tabla tradicional */}
+          <div className="hidden overflow-hidden rounded-lg border bg-background md:block">
             <Table>
               <TableHeader>
-                <TableRow>
+                <TableRow className="bg-muted/50 hover:bg-muted/50">
                   <TableHead>Nombre</TableHead>
                   <TableHead>Categoría</TableHead>
                   <TableHead className="text-right">Precio</TableHead>
@@ -307,8 +315,66 @@ export function ProductosClient({
             </Table>
           </div>
 
+          {/* Móvil (< md): tarjetas apiladas */}
+          <div className="space-y-3 md:hidden">
+            {productos.length === 0 ? (
+              <p className="rounded-lg border bg-background p-6 text-center text-sm text-muted-foreground">
+                No se encontraron productos.
+              </p>
+            ) : (
+              productos.map((p) => {
+                const bajo = p.stock <= STOCK_BAJO;
+                return (
+                  <MobileCard key={p.id}>
+                    <MobileCardHeader>
+                      <div className="min-w-0">
+                        <p className="break-words font-medium">{p.nombre}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {p.categoria?.nombre ?? "Sin categoría"}
+                        </p>
+                      </div>
+                      <span className="shrink-0 font-medium tabular-nums">
+                        {formatPrecio(p.precio)}
+                      </span>
+                    </MobileCardHeader>
+                    <MobileFields>
+                      <MobileField label="Stock">
+                        <span className="inline-flex items-center gap-2 tabular-nums">
+                          {p.stock}
+                          {bajo ? (
+                            <Badge variant="destructive">Bajo</Badge>
+                          ) : null}
+                        </span>
+                      </MobileField>
+                    </MobileFields>
+                    {isAdmin ? (
+                      <MobileCardActions>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => abrirEditar(p)}
+                        >
+                          <PencilIcon className="size-4" />
+                          Editar
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setAEliminar(p)}
+                        >
+                          <Trash2Icon className="size-4 text-destructive" />
+                          Desactivar
+                        </Button>
+                      </MobileCardActions>
+                    ) : null}
+                  </MobileCard>
+                );
+              })
+            )}
+          </div>
+
           {/* Paginación */}
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-sm text-muted-foreground">
               {total} resultado{total === 1 ? "" : "s"} · Página {page} de{" "}
               {totalPages}
@@ -317,6 +383,7 @@ export function ProductosClient({
               <Button
                 variant="outline"
                 size="sm"
+                className="flex-1 sm:flex-none"
                 onClick={() => navegar({ page: page - 1 })}
                 disabled={page <= 1}
               >
@@ -326,6 +393,7 @@ export function ProductosClient({
               <Button
                 variant="outline"
                 size="sm"
+                className="flex-1 sm:flex-none"
                 onClick={() => navegar({ page: page + 1 })}
                 disabled={page >= totalPages}
               >
