@@ -16,6 +16,11 @@ import {
   TableCell,
 } from "@/components/ui/table";
 import {
+  MobileCard,
+  MobileCardHeader,
+  MobileCardActions,
+} from "@/components/dashboard/mobile-card";
+import {
   Dialog,
   DialogContent,
   DialogHeader,
@@ -91,7 +96,7 @@ export function CategoriasClient({ categorias, isAdmin, loadError }) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Categorías</h1>
           <p className="text-muted-foreground">
@@ -99,7 +104,7 @@ export function CategoriasClient({ categorias, isAdmin, loadError }) {
           </p>
         </div>
         {isAdmin ? (
-          <Button onClick={abrirCrear}>
+          <Button onClick={abrirCrear} className="w-full sm:w-auto">
             <PlusIcon className="size-4" />
             Nueva categoría
           </Button>
@@ -111,58 +116,102 @@ export function CategoriasClient({ categorias, isAdmin, loadError }) {
           {loadError}
         </p>
       ) : (
-        <div className="rounded-lg border bg-background">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nombre</TableHead>
-                {isAdmin ? (
-                  <TableHead className="w-32 text-right">Acciones</TableHead>
-                ) : null}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {categorias.length === 0 ? (
-                <TableRow>
-                  <TableCell
-                    colSpan={isAdmin ? 2 : 1}
-                    className="text-center text-muted-foreground"
-                  >
-                    No hay categorías registradas.
-                  </TableCell>
+        <>
+          {/* Escritorio (md+): tabla tradicional */}
+          <div className="hidden overflow-hidden rounded-lg border bg-background md:block">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/50 hover:bg-muted/50">
+                  <TableHead>Nombre</TableHead>
+                  {isAdmin ? (
+                    <TableHead className="w-32 text-right">Acciones</TableHead>
+                  ) : null}
                 </TableRow>
-              ) : (
-                categorias.map((c) => (
-                  <TableRow key={c.id}>
-                    <TableCell className="font-medium">{c.nombre}</TableCell>
-                    {isAdmin ? (
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-1">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => abrirEditar(c)}
-                            aria-label={`Editar ${c.nombre}`}
-                          >
-                            <PencilIcon className="size-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => setAEliminar(c)}
-                            aria-label={`Eliminar ${c.nombre}`}
-                          >
-                            <Trash2Icon className="size-4 text-destructive" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    ) : null}
+              </TableHeader>
+              <TableBody>
+                {categorias.length === 0 ? (
+                  <TableRow>
+                    <TableCell
+                      colSpan={isAdmin ? 2 : 1}
+                      className="text-center text-muted-foreground"
+                    >
+                      No hay categorías registradas.
+                    </TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </div>
+                ) : (
+                  categorias.map((c) => (
+                    <TableRow key={c.id}>
+                      <TableCell className="font-medium">{c.nombre}</TableCell>
+                      {isAdmin ? (
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-1">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => abrirEditar(c)}
+                              aria-label={`Editar ${c.nombre}`}
+                            >
+                              <PencilIcon className="size-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => setAEliminar(c)}
+                              aria-label={`Eliminar ${c.nombre}`}
+                            >
+                              <Trash2Icon className="size-4 text-destructive" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      ) : null}
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+
+          {/* Móvil (< md): tarjetas apiladas */}
+          <div className="space-y-3 md:hidden">
+            {categorias.length === 0 ? (
+              <p className="rounded-lg border bg-background p-6 text-center text-sm text-muted-foreground">
+                No hay categorías registradas.
+              </p>
+            ) : (
+              categorias.map((c) => (
+                <MobileCard key={c.id}>
+                  <MobileCardHeader
+                    className={isAdmin ? "items-center" : "items-center pb-4"}
+                  >
+                    <p className="min-w-0 break-words font-medium">
+                      {c.nombre}
+                    </p>
+                  </MobileCardHeader>
+                  {isAdmin ? (
+                    <MobileCardActions>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => abrirEditar(c)}
+                      >
+                        <PencilIcon className="size-4" />
+                        Editar
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setAEliminar(c)}
+                      >
+                        <Trash2Icon className="size-4 text-destructive" />
+                        Eliminar
+                      </Button>
+                    </MobileCardActions>
+                  ) : null}
+                </MobileCard>
+              ))
+            )}
+          </div>
+        </>
       )}
 
       {/* Diálogo crear / editar */}
