@@ -24,7 +24,7 @@ const ICONS = {
   usuarios: UserCogIcon,
 };
 
-export function SidebarNav({ items }) {
+export function SidebarNav({ items, onNavigate }) {
   const pathname = usePathname();
 
   return (
@@ -40,14 +40,33 @@ export function SidebarNav({ items }) {
           <Link
             key={item.href}
             href={item.href}
+            onClick={onNavigate}
+            aria-current={active ? "page" : undefined}
             className={cn(
-              "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+              "group relative flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-all duration-200",
               active
-                ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
+                ? "bg-sidebar-active text-sidebar-accent-strong ring-1 ring-sidebar-accent-strong/20"
+                : "text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
             )}
           >
-            {Icon ? <Icon className="size-4" /> : null}
+            {/* Barra de acento a la izquierda del enlace activo. */}
+            <span
+              className={cn(
+                "absolute left-0 top-1.5 bottom-1.5 w-1 rounded-full bg-sidebar-accent-strong transition-opacity duration-200",
+                active ? "opacity-100" : "opacity-0"
+              )}
+              aria-hidden
+            />
+            {Icon ? (
+              <Icon
+                className={cn(
+                  "size-4 shrink-0 transition-colors duration-200",
+                  active
+                    ? "text-sidebar-accent-strong"
+                    : "text-sidebar-foreground/60 group-hover:text-sidebar-foreground"
+                )}
+              />
+            ) : null}
             {item.label}
           </Link>
         );
